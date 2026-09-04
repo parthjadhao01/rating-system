@@ -13,6 +13,7 @@ import {
   type ColumnFiltersState,
   type RowSelectionState,
   type PaginationState,
+  type OnChangeFn,
 } from "@tanstack/react-table"
 
 import {
@@ -86,6 +87,10 @@ interface DataTableProps<TData extends RowData & { id: string }> {
   data: TData[]
   toolbarActions?: React.ReactNode
   onReorder?: (data: TData[]) => void
+  pagination: PaginationState
+  onPaginationChange: OnChangeFn<PaginationState>
+  rowCount: number
+  isLoading?: boolean
 }
 
 function DraggableRow<TData extends { id: string }>({
@@ -124,6 +129,10 @@ export function DataTable<TData extends RowData & { id: string }>({
   data,
   toolbarActions,
   onReorder,
+  pagination,
+  onPaginationChange,
+  rowCount,
+  isLoading,
 }: DataTableProps<TData>) {
 
   const [sorting, setSorting] = useState<SortingState>([])
@@ -132,10 +141,6 @@ export function DataTable<TData extends RowData & { id: string }>({
     []
   )
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
-  const [pagination, setPagination] = useState<PaginationState>({
-    pageIndex: 0,
-    pageSize: 10,
-  })
 
   const sortableId = React.useId()
   const sensors = useSensors(
@@ -152,11 +157,13 @@ export function DataTable<TData extends RowData & { id: string }>({
     features,
     data,
     columns,
+    manualPagination: true,
+    rowCount,
     onSortingChange: setSorting,
     onColumnVisibilityChange: setColumnVisibility,
     onColumnFiltersChange: setColumnFilters,
     onRowSelectionChange: setRowSelection,
-    onPaginationChange: setPagination,
+    onPaginationChange,
     state: {
       sorting,
       columnVisibility,
@@ -294,7 +301,7 @@ export function DataTable<TData extends RowData & { id: string }>({
                     colSpan={columns.length}
                     className="h-24 text-center text-muted-foreground"
                   >
-                    No results.
+                    {isLoading ? "Loading..." : "No results."}
                   </TableCell>
                 </TableRow>
               )}

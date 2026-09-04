@@ -14,7 +14,7 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer"
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
+import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import {
   Select,
@@ -44,6 +44,8 @@ export function AddUserDrawer({ onAdd }: AddUserDrawerProps) {
   const [password, setPassword] = React.useState("")
   const [address, setAddress] = React.useState("")
   const [role, setRole] = React.useState<Role>(Role.NORMAL_USER)
+  const [error, setError] = React.useState<string | null>(null)
+  const [isSubmitting, setIsSubmitting] = React.useState(false)
 
   function resetForm() {
     setName("")
@@ -51,21 +53,37 @@ export function AddUserDrawer({ onAdd }: AddUserDrawerProps) {
     setPassword("")
     setAddress("")
     setRole(Role.NORMAL_USER)
+    setError(null)
+    setIsSubmitting(false)
   }
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    setError(null)
+    setIsSubmitting(true)
 
-    onAdd({
-      id: crypto.randomUUID(),
-      name,
-      email,
-      address,
-      role,
-    })
+    try {
+      const response = await fetch("/api/user", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password, address, role }),
+      })
 
-    resetForm()
-    setOpen(false)
+      const json = await response.json()
+
+      if (!response.ok) {
+        setError(json.error ?? "Something went wrong")
+        return
+      }
+
+      onAdd(json as User)
+      resetForm()
+      setOpen(false)
+    } catch {
+      setError("Something went wrong")
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -95,6 +113,7 @@ export function AddUserDrawer({ onAdd }: AddUserDrawerProps) {
           </DrawerHeader>
           <div className="flex-1 overflow-y-auto p-4">
             <FieldGroup>
+              {error && <FieldError>{error}</FieldError>}
               <Field>
                 <FieldLabel htmlFor="add-user-name">Name</FieldLabel>
                 <Input
@@ -158,8 +177,8 @@ export function AddUserDrawer({ onAdd }: AddUserDrawerProps) {
             </FieldGroup>
           </div>
           <DrawerFooter>
-            <Button type="submit" form="add-user-form">
-              Create user
+            <Button type="submit" form="add-user-form" disabled={isSubmitting}>
+              {isSubmitting ? "Creating..." : "Create user"}
             </Button>
             <DrawerClose render={<Button variant="outline" />}>
               Cancel

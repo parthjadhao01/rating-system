@@ -1,5 +1,9 @@
+// Values match the Prisma `Role` enum exactly (prisma/schema.prisma) — the
+// API returns enum values as these string names, not numeric indexes.
 export enum Role {
-    "ADMIN","NORMAL_USER" ,"STORE_OWNER"
+    ADMIN = "ADMIN",
+    NORMAL_USER = "NORMAL_USER",
+    STORE_OWNER = "STORE_OWNER",
 }
 
 export type User = {

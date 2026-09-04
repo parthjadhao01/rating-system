@@ -1,44 +1,62 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import type { PaginationState } from "@tanstack/react-table"
 
 import { columns } from "./column"
-import { User, Role } from "./types"
+import { User } from "./types"
 import { DataTable } from "./data-table"
 import { AddUserDrawer } from "./add-user-drawer"
 
-const initialData: User[] = [
-    {
-        id : "23432",
-        name : "parth jadhao",
-        email : "parthjadhao4@gmail.com",
-        address : "moti nagar",
-        role : Role.ADMIN
-    },
-    {
-        id : "23412",
-        name : "bharti jadhao",
-        email : "bhartijadhao4@gmail.com",
-        address : "moti nagar",
-        role : Role.NORMAL_USER
-    },{
-        id : "23430",
-        name : "siya jadhao",
-        email : "siyajadhao4@gmail.com",
-        address : "moti nagar",
-        role : Role.STORE_OWNER,
-        rating : 4
-    }
-]
+interface UsersResponse {
+  users: User[]
+  total: number
+}
 
 export default function UserTable() {
-  const [data, setData] = useState<User[]>(initialData)
+  const [data, setData] = useState<User[]>([])
+  const [rowCount, setRowCount] = useState(0)
+  const [isLoading, setIsLoading] = useState(true)
+  const [pagination, setPagination] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 10,
+  })
+
+  useEffect(() => {
+    let cancelled = false
+
+    setIsLoading(true)
+
+    const params = new URLSearchParams({
+      pageIndex: `${pagination.pageIndex}`,
+      pageSize: `${pagination.pageSize}`,
+    })
+
+    fetch(`/api/user?${params.toString()}`)
+      .then((res) => res.json())
+      .then((json: UsersResponse) => {
+        if (cancelled) return
+        setData(json.users)
+        setRowCount(json.total)
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [pagination.pageIndex, pagination.pageSize])
 
   return (
     <div className="">
       <DataTable
         columns={columns}
         data={data}
+        pagination={pagination}
+        onPaginationChange={setPagination}
+        rowCount={rowCount}
+        isLoading={isLoading}
         onReorder={setData}
         toolbarActions={
           <AddUserDrawer
