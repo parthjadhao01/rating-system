@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 import type { PaginationState } from "@tanstack/react-table"
 
 import { columns } from "./column"
@@ -14,6 +15,7 @@ interface UsersResponse {
 }
 
 export default function UserTable() {
+  const router = useRouter()
   const [data, setData] = useState<User[]>([])
   const [rowCount, setRowCount] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
@@ -60,7 +62,12 @@ export default function UserTable() {
         onReorder={setData}
         toolbarActions={
           <AddUserDrawer
-            onAdd={(user) => setData((prev) => [user, ...prev])}
+            onAdd={(user) => {
+              setData((prev) => [user, ...prev])
+              setRowCount((prev) => prev + 1)
+              // Refreshes the server-rendered "Total Users" count on the dashboard.
+              router.refresh()
+            }}
           />
         }
       />
