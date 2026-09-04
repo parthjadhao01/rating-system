@@ -1,6 +1,13 @@
+"use client"
 
+import { useState } from "react"
 
-const data : User[] = [
+import { columns } from "./column"
+import { User, Role } from "./types"
+import { DataTable } from "./data-table"
+import { AddUserDrawer } from "./add-user-drawer"
+
+const initialData: User[] = [
     {
         id : "23432",
         name : "parth jadhao",
@@ -19,20 +26,26 @@ const data : User[] = [
         name : "siya jadhao",
         email : "siyajadhao4@gmail.com",
         address : "moti nagar",
-        role : Role.STORE_OWNER
+        role : Role.STORE_OWNER,
+        rating : 4
     }
 ]
 
-import { columns } from "./column"
-import { User, Role } from "./types"
-import { DataTable } from "./data-table"
-
-
-export default async function DemoPage() {
+export default function UserTable() {
+  const [data, setData] = useState<User[]>(initialData)
 
   return (
-    <div className="container mx-auto py-10">
-      <DataTable columns={columns} data={data} />
+    <div className="">
+      <DataTable
+        columns={columns}
+        data={data}
+        onReorder={setData}
+        toolbarActions={
+          <AddUserDrawer
+            onAdd={(user) => setData((prev) => [user, ...prev])}
+          />
+        }
+      />
     </div>
   )
 }

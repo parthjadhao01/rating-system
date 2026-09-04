@@ -1,14 +1,14 @@
 "use client"
 
+import Link from "next/link"
 import { createColumnHelper } from "@tanstack/react-table"
 import { useSortable } from "@dnd-kit/sortable"
-import { GripVerticalIcon } from "lucide-react"
+import { GripVerticalIcon, StarIcon } from "lucide-react"
 import { DataTableFeatures } from "./data-table-features"
-import { Role, User } from "./types"
+import { Store } from "./types"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
-import { UserInfoDrawer } from "./user-info-drawer"
 
 function DragHandle({ id }: { id: string }) {
     const { attributes, listeners } = useSortable({ id })
@@ -26,7 +26,7 @@ function DragHandle({ id }: { id: string }) {
     )
 }
 
-const columnHelper = createColumnHelper<DataTableFeatures,User>()
+const columnHelper = createColumnHelper<DataTableFeatures,Store>()
 
 export const columns = columnHelper.columns([
     columnHelper.display({
@@ -63,7 +63,6 @@ export const columns = columnHelper.columns([
     }),
     columnHelper.accessor("name",{
         header : "Name",
-        cell : (props) => <UserInfoDrawer user={props.row.original} />
     }),
     columnHelper.accessor("email",{
         header : "email"
@@ -71,17 +70,12 @@ export const columns = columnHelper.columns([
     columnHelper.accessor("address",{
         header : "address"
     }),
-    columnHelper.accessor("role",{
-        header : "role",
-        filterFn : (row, columnId, filterValue) => {
-            if (filterValue === undefined || filterValue === "" || filterValue === "all") {
-                return true
-            }
-            return String(row.getValue(columnId)) === String(filterValue)
-        },
+    columnHelper.accessor("rating",{
+        header : "rating",
         cell : (props) => (
-            <Badge variant="outline" className="text-muted-foreground px-1.5">
-                {Role[props.getValue()]}
+            <Badge variant="outline" className="text-muted-foreground gap-1 px-1.5">
+                <StarIcon className="size-3 fill-current" />
+                {props.getValue()}
             </Badge>
         )
     })

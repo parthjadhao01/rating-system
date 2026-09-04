@@ -70,16 +70,8 @@ import {
 } from "lucide-react"
 
 import { features, type DataTableFeatures } from "./data-table-features"
-import { Role } from "./types"
 import { Button } from "@/components/ui/button"
 import { useState } from "react"
-
-const roleFilterItems = [
-  { label: "All roles", value: "all" },
-  { label: "Admin", value: `${Role.ADMIN}` },
-  { label: "Normal User", value: `${Role.NORMAL_USER}` },
-  { label: "Store Owner", value: `${Role.STORE_OWNER}` },
-]
 
 interface DataTableProps<TData extends RowData & { id: string }> {
   columns: ColumnDef<DataTableFeatures, TData>[]
@@ -202,26 +194,6 @@ export function DataTable<TData extends RowData & { id: string }>({
           }
           className="w-40"
         />
-        <Select
-          items={roleFilterItems}
-          value={(table.getColumn("role")?.getFilterValue() as string) ?? "all"}
-          onValueChange={(value) =>
-            table
-              .getColumn("role")
-              ?.setFilterValue(value === "all" ? undefined : value)
-          }
-        >
-          <SelectTrigger className="w-36">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {roleFilterItems.map((item) => (
-              <SelectItem key={item.value} value={item.value}>
-                {item.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
         <div className="ml-auto flex items-center gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger render={<Button variant="outline" />}>

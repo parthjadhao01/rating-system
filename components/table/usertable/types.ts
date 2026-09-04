@@ -8,4 +8,6 @@ export type User = {
     email : string,
     address : string
     role : Role
+    // Average rating of the store this user owns. Only meaningful when role is STORE_OWNER.
+    rating? : number
 }

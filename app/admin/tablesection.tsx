@@ -3,7 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Store, User } from "lucide-react"
 import React from 'react'
 import UserTable from "../../components/table/usertable/usertable"
-import StoreTable from "./storetable"
+import StoreTable from "../../components/table/storetable/storetable"
 import { cn } from "@/lib/utils"
 
 function Tablesection() {
