@@ -27,8 +27,6 @@ export default function StoreTable() {
 
     setIsLoading(true)
 
-    // Filtering, sorting, and pagination all happen client-side in
-    // DataTable (TanStack Table), so the full list is fetched once.
     fetch("/api/store")
       .then((res) => res.json())
       .then((json: StoresResponse) => {
@@ -57,7 +55,6 @@ export default function StoreTable() {
           <AddStoreDrawer
             onAdd={(store) => {
               setData((prev) => [store, ...prev])
-              // Refreshes the server-rendered "Total Stores" count on the dashboard.
               router.refresh()
             }}
           />

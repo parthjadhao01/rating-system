@@ -1,14 +1,10 @@
 import { z } from "zod"
 
-// At least one uppercase letter and one special character, per the
-// assignment's password policy.
+
 const PASSWORD_UPPERCASE_RE = /[A-Z]/
 const PASSWORD_SPECIAL_CHAR_RE = /[^A-Za-z0-9]/
 
-// Single source of truth for user validation — imported by the API route
-// (lib/validations/user.ts -> app/api/user/route.ts) and by the Add User
-// drawer (components/table/usertable/add-user-drawer.tsx), so client and
-// server can never drift apart on the rules.
+
 export const createUserSchema = z.object({
     name: z
         .string()

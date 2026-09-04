@@ -28,8 +28,6 @@ import {
 import { createUserSchema } from "@/lib/validations/user"
 import { Role, type User } from "./types"
 
-// Same schema the API validates against (lib/validations/user.ts) — reused
-// here so client and server can never fall out of sync on the rules.
 const NAME_MAX_LENGTH = 60
 const PASSWORD_MAX_LENGTH = 16
 const ADDRESS_MAX_LENGTH = 400
@@ -68,8 +66,6 @@ export function AddUserDrawer({ onAdd }: AddUserDrawerProps) {
     event.preventDefault()
     setError(null)
 
-    // Validate against the same Zod schema the API uses, so a bad
-    // submission is rejected here instead of round-tripping to the server.
     const result = createUserSchema.safeParse({ name, email, password, address, role })
     if (!result.success) {
       setError(result.error.issues[0]?.message ?? "Invalid user data")

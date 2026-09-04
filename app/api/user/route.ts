@@ -7,8 +7,7 @@ import {createUserSchema} from "@/lib/validations/user"
 
 const PASSWORD_SALT_ROUNDS = 10
 
-// Filtering, sorting, and pagination for the admin table are all handled
-// client-side by TanStack Table, so the full list is returned in one call.
+
 export async function GET() {
   const users = await prisma.user.findMany({
     orderBy: { createdAt: "desc" },

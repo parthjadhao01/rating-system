@@ -147,9 +147,7 @@ export function DataTable<TData extends RowData & { id: string }>({
     useSensor(KeyboardSensor, {})
   )
 
-  // Filtering, sorting, and pagination all run client-side against the
-  // full `data` array passed in, so `table.getRowModel()` only returns the
-  // current page's rows.
+
   const table = useTable({
     features,
     data,
@@ -168,12 +166,6 @@ export function DataTable<TData extends RowData & { id: string }>({
     },
   })
 
-  // Drag-and-drop only ever touches the rows rendered on the current page,
-  // so the sortable context's ids must match that page, not the full list.
-  // `table` is a stable object identity across renders (tanstack mutates it
-  // in place), so this can't be a `useMemo` keyed on `table` — it would
-  // never recompute. `getRowModel()` is already internally memoized, so
-  // recomputing this small array on every render is cheap.
   const dataIds: UniqueIdentifier[] = table
     .getRowModel()
     .rows.map((row) => row.original.id)
@@ -181,8 +173,6 @@ export function DataTable<TData extends RowData & { id: string }>({
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event
     if (over && active.id !== over.id) {
-      // Reorder within the full dataset (not the page-relative dataIds),
-      // so moving a row also updates its position across page boundaries.
       const oldIndex = data.findIndex((item) => item.id === active.id)
       const newIndex = data.findIndex((item) => item.id === over.id)
       if (oldIndex !== -1 && newIndex !== -1) {

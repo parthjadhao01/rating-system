@@ -4,8 +4,6 @@ import { z } from "zod"
 import { prisma } from "@/lib/prisma"
 import { createStoreSchema } from "@/lib/validations/store"
 
-// Filtering, sorting, and pagination for the admin table are all handled
-// client-side by TanStack Table, so the full list is returned in one call.
 export async function GET() {
   const stores = await prisma.store.findMany({
     orderBy: { createdAt: "desc" },

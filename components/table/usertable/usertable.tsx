@@ -27,8 +27,6 @@ export default function UserTable() {
 
     setIsLoading(true)
 
-    // Filtering, sorting, and pagination all happen client-side in
-    // DataTable (TanStack Table), so the full list is fetched once.
     fetch("/api/user")
       .then((res) => res.json())
       .then((json: UsersResponse) => {
@@ -57,7 +55,7 @@ export default function UserTable() {
           <AddUserDrawer
             onAdd={(user) => {
               setData((prev) => [user, ...prev])
-              // Refreshes the server-rendered "Total Users" count on the dashboard.
+
               router.refresh()
             }}
           />
