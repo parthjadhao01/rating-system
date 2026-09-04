@@ -4,7 +4,12 @@ import { z } from "zod"
 import { prisma } from "@/lib/prisma"
 import { createStoreSchema } from "@/lib/validations/store"
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  // When a userId is passed (the normal-user store directory), each store
+  // also carries that user's own rating alongside the overall average. The
+  // admin store table doesn't pass this, so its response shape is unchanged.
+  const userId = request.nextUrl.searchParams.get("userId")
+
   const stores = await prisma.store.findMany({
     orderBy: { createdAt: "desc" },
     select: {
@@ -12,7 +17,7 @@ export async function GET() {
       name: true,
       email: true,
       address: true,
-      ratings: { select: { rating: true } },
+      ratings: { select: { rating: true, userId: true } },
     },
   })
 
@@ -21,6 +26,9 @@ export async function GET() {
     rating: ratings.length
       ? ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length
       : 0,
+    ...(userId
+      ? { userRating: ratings.find((r) => r.userId === userId)?.rating ?? null }
+      : {}),
   }))
 
   return NextResponse.json({ stores: storesWithRating })

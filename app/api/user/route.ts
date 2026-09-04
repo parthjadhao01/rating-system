@@ -1,11 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
-import bcrypt from "bcryptjs"
 import { Prisma } from "@prisma/client"
 import { z } from "zod"
 import { prisma } from "@/lib/prisma"
+import { hashPassword } from "@/lib/password"
 import {createUserSchema} from "@/lib/validations/user"
-
-const PASSWORD_SALT_ROUNDS = 10
 
 
 export async function GET() {
@@ -38,10 +36,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const validatedData = createUserSchema.parse(body)
 
-    const hashedPassword = await bcrypt.hash(
-      validatedData.password,
-      PASSWORD_SALT_ROUNDS
-    )
+    const hashedPassword = await hashPassword(validatedData.password)
 
     const newUser = await prisma.user.create({
       data: {
