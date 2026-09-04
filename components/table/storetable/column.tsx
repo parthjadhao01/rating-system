@@ -1,6 +1,5 @@
 "use client"
 
-import Link from "next/link"
 import { createColumnHelper } from "@tanstack/react-table"
 import { useSortable } from "@dnd-kit/sortable"
 import { GripVerticalIcon, StarIcon } from "lucide-react"

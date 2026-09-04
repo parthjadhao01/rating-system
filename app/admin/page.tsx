@@ -1,5 +1,4 @@
 
-import React from 'react'
 import Tablesection from './tablesection'
 import Section from './section'
 import { SiteHeader } from './site-header'
@@ -13,7 +12,6 @@ export default function Admin() {
                     totalUser={100}
                     totalStore={50}
                     totalReview={200}
-                    averageRating={4.2}
                 />
                 <Tablesection />
             </div>

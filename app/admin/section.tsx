@@ -1,4 +1,3 @@
-import React from 'react'
 import { StarIcon, StoreIcon, UsersIcon } from 'lucide-react'
 import {
     Card,
@@ -13,12 +12,10 @@ function Section({
     totalUser,
     totalStore,
     totalReview,
-    averageRating,
 }: {
     totalUser: number
     totalStore: number
     totalReview: number
-    averageRating: number
 }) {
     return (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
