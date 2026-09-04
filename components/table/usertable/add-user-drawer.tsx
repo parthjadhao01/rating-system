@@ -14,7 +14,7 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer"
-import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field"
+import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import {
   Select,
@@ -25,7 +25,14 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
+import { createUserSchema } from "@/lib/validations/user"
 import { Role, type User } from "./types"
+
+// Same schema the API validates against (lib/validations/user.ts) — reused
+// here so client and server can never fall out of sync on the rules.
+const NAME_MAX_LENGTH = 60
+const PASSWORD_MAX_LENGTH = 16
+const ADDRESS_MAX_LENGTH = 400
 
 const roleItems = [
   { label: "Normal User", value: Role.NORMAL_USER },
@@ -60,13 +67,22 @@ export function AddUserDrawer({ onAdd }: AddUserDrawerProps) {
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setError(null)
+
+    // Validate against the same Zod schema the API uses, so a bad
+    // submission is rejected here instead of round-tripping to the server.
+    const result = createUserSchema.safeParse({ name, email, password, address, role })
+    if (!result.success) {
+      setError(result.error.issues[0]?.message ?? "Invalid user data")
+      return
+    }
+
     setIsSubmitting(true)
 
     try {
       const response = await fetch("/api/user", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password, address, role }),
+        body: JSON.stringify(result.data),
       })
 
       const json = await response.json()
@@ -120,8 +136,10 @@ export function AddUserDrawer({ onAdd }: AddUserDrawerProps) {
                   id="add-user-name"
                   value={name}
                   onChange={(event) => setName(event.target.value)}
+                  maxLength={NAME_MAX_LENGTH}
                   required
                 />
+                <FieldDescription>20-60 characters</FieldDescription>
               </Field>
               <Field>
                 <FieldLabel htmlFor="add-user-email">Email</FieldLabel>
@@ -141,8 +159,13 @@ export function AddUserDrawer({ onAdd }: AddUserDrawerProps) {
                   type="password"
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
+                  maxLength={PASSWORD_MAX_LENGTH}
                   required
                 />
+                <FieldDescription>
+                  8-16 characters, with at least one uppercase letter and one special
+                  character
+                </FieldDescription>
               </Field>
               <Field>
                 <FieldLabel htmlFor="add-user-address">Address</FieldLabel>
@@ -150,6 +173,7 @@ export function AddUserDrawer({ onAdd }: AddUserDrawerProps) {
                   id="add-user-address"
                   value={address}
                   onChange={(event) => setAddress(event.target.value)}
+                  maxLength={ADDRESS_MAX_LENGTH}
                   required
                 />
               </Field>

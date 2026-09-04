@@ -11,13 +11,11 @@ import { AddUserDrawer } from "./add-user-drawer"
 
 interface UsersResponse {
   users: User[]
-  total: number
 }
 
 export default function UserTable() {
   const router = useRouter()
   const [data, setData] = useState<User[]>([])
-  const [rowCount, setRowCount] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
@@ -29,17 +27,13 @@ export default function UserTable() {
 
     setIsLoading(true)
 
-    const params = new URLSearchParams({
-      pageIndex: `${pagination.pageIndex}`,
-      pageSize: `${pagination.pageSize}`,
-    })
-
-    fetch(`/api/user?${params.toString()}`)
+    // Filtering, sorting, and pagination all happen client-side in
+    // DataTable (TanStack Table), so the full list is fetched once.
+    fetch("/api/user")
       .then((res) => res.json())
       .then((json: UsersResponse) => {
         if (cancelled) return
         setData(json.users)
-        setRowCount(json.total)
       })
       .finally(() => {
         if (!cancelled) setIsLoading(false)
@@ -48,7 +42,7 @@ export default function UserTable() {
     return () => {
       cancelled = true
     }
-  }, [pagination.pageIndex, pagination.pageSize])
+  }, [])
 
   return (
     <div className="">
@@ -57,14 +51,12 @@ export default function UserTable() {
         data={data}
         pagination={pagination}
         onPaginationChange={setPagination}
-        rowCount={rowCount}
         isLoading={isLoading}
         onReorder={setData}
         toolbarActions={
           <AddUserDrawer
             onAdd={(user) => {
               setData((prev) => [user, ...prev])
-              setRowCount((prev) => prev + 1)
               // Refreshes the server-rendered "Total Users" count on the dashboard.
               router.refresh()
             }}

@@ -4,33 +4,19 @@ import { z } from "zod"
 import { prisma } from "@/lib/prisma"
 import { createStoreSchema } from "@/lib/validations/store"
 
-const DEFAULT_PAGE_SIZE = 10
-const MAX_PAGE_SIZE = 100
-
-export async function GET(request: NextRequest) {
-  const searchParams = request.nextUrl.searchParams
-
-  const pageIndex = Math.max(0, Number(searchParams.get("pageIndex")) || 0)
-  const pageSize = Math.min(
-    MAX_PAGE_SIZE,
-    Math.max(1, Number(searchParams.get("pageSize")) || DEFAULT_PAGE_SIZE)
-  )
-
-  const [stores, total] = await Promise.all([
-    prisma.store.findMany({
-      skip: pageIndex * pageSize,
-      take: pageSize,
-      orderBy: { createdAt: "desc" },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        address: true,
-        ratings: { select: { rating: true } },
-      },
-    }),
-    prisma.store.count(),
-  ])
+// Filtering, sorting, and pagination for the admin table are all handled
+// client-side by TanStack Table, so the full list is returned in one call.
+export async function GET() {
+  const stores = await prisma.store.findMany({
+    orderBy: { createdAt: "desc" },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      address: true,
+      ratings: { select: { rating: true } },
+    },
+  })
 
   const storesWithRating = stores.map(({ ratings, ...store }) => ({
     ...store,
@@ -39,13 +25,7 @@ export async function GET(request: NextRequest) {
       : 0,
   }))
 
-  return NextResponse.json({
-    stores: storesWithRating,
-    pageIndex,
-    pageSize,
-    total,
-    pageCount: Math.ceil(total / pageSize),
-  })
+  return NextResponse.json({ stores: storesWithRating })
 }
 
 export async function POST(request: NextRequest) {

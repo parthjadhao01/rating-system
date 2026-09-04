@@ -11,13 +11,11 @@ import { AddStoreDrawer } from "./add-store-drawer"
 
 interface StoresResponse {
   stores: Store[]
-  total: number
 }
 
 export default function StoreTable() {
   const router = useRouter()
   const [data, setData] = useState<Store[]>([])
-  const [rowCount, setRowCount] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
@@ -29,17 +27,13 @@ export default function StoreTable() {
 
     setIsLoading(true)
 
-    const params = new URLSearchParams({
-      pageIndex: `${pagination.pageIndex}`,
-      pageSize: `${pagination.pageSize}`,
-    })
-
-    fetch(`/api/store?${params.toString()}`)
+    // Filtering, sorting, and pagination all happen client-side in
+    // DataTable (TanStack Table), so the full list is fetched once.
+    fetch("/api/store")
       .then((res) => res.json())
       .then((json: StoresResponse) => {
         if (cancelled) return
         setData(json.stores)
-        setRowCount(json.total)
       })
       .finally(() => {
         if (!cancelled) setIsLoading(false)
@@ -48,7 +42,7 @@ export default function StoreTable() {
     return () => {
       cancelled = true
     }
-  }, [pagination.pageIndex, pagination.pageSize])
+  }, [])
 
   return (
     <div className="">
@@ -57,14 +51,12 @@ export default function StoreTable() {
         data={data}
         pagination={pagination}
         onPaginationChange={setPagination}
-        rowCount={rowCount}
         isLoading={isLoading}
         onReorder={setData}
         toolbarActions={
           <AddStoreDrawer
             onAdd={(store) => {
               setData((prev) => [store, ...prev])
-              setRowCount((prev) => prev + 1)
               // Refreshes the server-rendered "Total Stores" count on the dashboard.
               router.refresh()
             }}

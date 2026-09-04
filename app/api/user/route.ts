@@ -7,41 +7,31 @@ import {createUserSchema} from "@/lib/validations/user"
 
 const PASSWORD_SALT_ROUNDS = 10
 
-const DEFAULT_PAGE_SIZE = 10
-const MAX_PAGE_SIZE = 100
-
-export async function GET(request: NextRequest) {
-  const searchParams = request.nextUrl.searchParams
-
-  const pageIndex = Math.max(0, Number(searchParams.get("pageIndex")) || 0)
-  const pageSize = Math.min(
-    MAX_PAGE_SIZE,
-    Math.max(1, Number(searchParams.get("pageSize")) || DEFAULT_PAGE_SIZE)
-  )
-
-  const [users, total] = await Promise.all([
-    prisma.user.findMany({
-      skip: pageIndex * pageSize,
-      take: pageSize,
-      orderBy: { createdAt: "desc" },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        address: true,
-        role: true,
-      },
-    }),
-    prisma.user.count(),
-  ])
-
-  return NextResponse.json({
-    users,
-    pageIndex,
-    pageSize,
-    total,
-    pageCount: Math.ceil(total / pageSize),
+// Filtering, sorting, and pagination for the admin table are all handled
+// client-side by TanStack Table, so the full list is returned in one call.
+export async function GET() {
+  const users = await prisma.user.findMany({
+    orderBy: { createdAt: "desc" },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      address: true,
+      role: true,
+      // Only store owners have a store; ratings are averaged below so the
+      // client can show a store owner's rating without a second request.
+      store: { select: { ratings: { select: { rating: true } } } },
+    },
   })
+
+  const usersWithRating = users.map(({ store, ...user }) => ({
+    ...user,
+    rating: store?.ratings.length
+      ? store.ratings.reduce((sum, r) => sum + r.rating, 0) / store.ratings.length
+      : undefined,
+  }))
+
+  return NextResponse.json({ users: usersWithRating })
 }
 
 export async function POST(request: NextRequest) {
@@ -71,7 +61,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(newUser, { status: 201 })
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: "Invalid user data" }, { status: 400 })
+      // Surface the specific rule that failed (e.g. password length/uppercase
+      // requirements) instead of a generic message, so the Add User drawer
+      // can show the user what to fix.
+      return NextResponse.json(
+        { error: error.issues[0]?.message ?? "Invalid user data" },
+        { status: 400 }
+      )
     }
 
     if (
