@@ -1,7 +1,6 @@
 import { z } from "zod"
 
 export const submitRatingSchema = z.object({
-    userId: z.string().cuid("Invalid user"),
     storeId: z.string().cuid("Invalid store"),
     rating: z
         .number()

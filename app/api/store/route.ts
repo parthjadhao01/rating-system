@@ -2,40 +2,51 @@ import { NextRequest, NextResponse } from "next/server"
 import { Prisma } from "@prisma/client"
 import { z } from "zod"
 import { prisma } from "@/lib/prisma"
+import { requireSession, UnauthenticatedError, ForbiddenError } from "@/lib/auth"
 import { createStoreSchema } from "@/lib/validations/store"
 
-export async function GET(request: NextRequest) {
-  // When a userId is passed (the normal-user store directory), each store
-  // also carries that user's own rating alongside the overall average. The
-  // admin store table doesn't pass this, so its response shape is unchanged.
-  const userId = request.nextUrl.searchParams.get("userId")
+export async function GET() {
+  try {
+    const session = await requireSession()
 
-  const stores = await prisma.store.findMany({
-    orderBy: { createdAt: "desc" },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      address: true,
-      ratings: { select: { rating: true, userId: true } },
-    },
-  })
+    const stores = await prisma.store.findMany({
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        address: true,
+        ratings: { select: { rating: true, userId: true } },
+      },
+    })
 
-  const storesWithRating = stores.map(({ ratings, ...store }) => ({
-    ...store,
-    rating: ratings.length
-      ? ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length
-      : 0,
-    ...(userId
-      ? { userRating: ratings.find((r) => r.userId === userId)?.rating ?? null }
-      : {}),
-  }))
+    const storesWithRating = stores.map(({ ratings, ...store }) => ({
+      ...store,
+      rating: ratings.length
+        ? ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length
+        : 0,
+      ...(session.role === "NORMAL_USER"
+        ? { userRating: ratings.find((r) => r.userId === session.userId)?.rating ?? null }
+        : {}),
+    }))
 
-  return NextResponse.json({ stores: storesWithRating })
+    return NextResponse.json({ stores: storesWithRating })
+  } catch (error) {
+    if (error instanceof UnauthenticatedError) {
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 })
+    }
+
+    return NextResponse.json(
+      { error: "Something went wrong" },
+      { status: 500 }
+    )
+  }
 }
 
 export async function POST(request: NextRequest) {
   try {
+    await requireSession(["ADMIN"])
+
     const body = await request.json()
     const validatedData = createStoreSchema.parse(body)
 
@@ -56,6 +67,14 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ ...newStore, rating: 0 }, { status: 201 })
   } catch (error) {
+    if (error instanceof UnauthenticatedError) {
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 })
+    }
+
+    if (error instanceof ForbiddenError) {
+      return NextResponse.json({ error: "Not authorized" }, { status: 403 })
+    }
+
     if (error instanceof z.ZodError || error instanceof SyntaxError) {
       return NextResponse.json({ error: "Invalid store data" }, { status: 400 })
     }

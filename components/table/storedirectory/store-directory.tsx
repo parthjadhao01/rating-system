@@ -7,15 +7,11 @@ import { createColumns } from "./column"
 import { DirectoryStore } from "./types"
 import { DataTable } from "./data-table"
 
-interface StoreDirectoryProps {
-  userId: string
-}
-
 interface StoresResponse {
   stores: DirectoryStore[]
 }
 
-export default function StoreDirectory({ userId }: StoreDirectoryProps) {
+export default function StoreDirectory() {
   const [data, setData] = useState<DirectoryStore[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [pagination, setPagination] = useState<PaginationState>({
@@ -28,7 +24,7 @@ export default function StoreDirectory({ userId }: StoreDirectoryProps) {
 
     setIsLoading(true)
 
-    fetch(`/api/store?userId=${userId}`)
+    fetch("/api/store")
       .then((res) => res.json())
       .then((json: StoresResponse) => {
         if (cancelled) return
@@ -41,41 +37,38 @@ export default function StoreDirectory({ userId }: StoreDirectoryProps) {
     return () => {
       cancelled = true
     }
-  }, [userId])
+  }, [])
 
-  const handleRate = useCallback(
-    async (storeId: string, rating: number) => {
+  const handleRate = useCallback(async (storeId: string, rating: number) => {
+    setData((prev) =>
+      prev.map((store) =>
+        store.id === storeId ? { ...store, userRating: rating } : store
+      )
+    )
+
+    try {
+      const response = await fetch("/api/rating", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ storeId, rating }),
+      })
+
+      const json = await response.json()
+      if (!response.ok) throw new Error(json.error ?? "Failed to submit rating")
+
       setData((prev) =>
         prev.map((store) =>
-          store.id === storeId ? { ...store, userRating: rating } : store
+          store.id === storeId
+            ? { ...store, rating: json.storeRating, userRating: json.rating }
+            : store
         )
       )
-
-      try {
-        const response = await fetch("/api/rating", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userId, storeId, rating }),
-        })
-
-        const json = await response.json()
-        if (!response.ok) throw new Error(json.error ?? "Failed to submit rating")
-
-        setData((prev) =>
-          prev.map((store) =>
-            store.id === storeId
-              ? { ...store, rating: json.storeRating, userRating: json.rating }
-              : store
-          )
-        )
-      } catch {
-        fetch(`/api/store?userId=${userId}`)
-          .then((res) => res.json())
-          .then((json: StoresResponse) => setData(json.stores))
-      }
-    },
-    [userId]
-  )
+    } catch {
+      fetch("/api/store")
+        .then((res) => res.json())
+        .then((json: StoresResponse) => setData(json.stores))
+    }
+  }, [])
 
   const columns = useMemo(() => createColumns(handleRate), [handleRate])
 

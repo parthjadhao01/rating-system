@@ -17,11 +17,7 @@ interface DashboardResponse {
   raters: Review[]
 }
 
-interface StoreOwnerDashboardProps {
-  userId: string
-}
-
-export function StoreOwnerDashboard({ userId }: StoreOwnerDashboardProps) {
+export function StoreOwnerDashboard() {
   const [data, setData] = useState<DashboardResponse | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -32,7 +28,7 @@ export function StoreOwnerDashboard({ userId }: StoreOwnerDashboardProps) {
     setIsLoading(true)
     setError(null)
 
-    fetch(`/api/store-owner/dashboard?userId=${userId}`)
+    fetch("/api/store-owner/dashboard")
       .then(async (res) => {
         const json = await res.json()
         if (!res.ok) throw new Error(json.error ?? "Failed to load dashboard")
@@ -53,7 +49,7 @@ export function StoreOwnerDashboard({ userId }: StoreOwnerDashboardProps) {
     return () => {
       cancelled = true
     }
-  }, [userId])
+  }, [])
 
   if (error) {
     return <p className="text-muted-foreground">{error}</p>

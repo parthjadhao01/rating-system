@@ -30,14 +30,7 @@ import { Input } from "@/components/ui/input"
 import { changePasswordSchema } from "@/lib/validations/user"
 
 const PASSWORD_MAX_LENGTH = 16
-
-interface ChangePasswordDrawerProps {
-  // TODO: drop once the current user comes from a real session instead of
-  // being passed down from the page (see app/user/page.tsx).
-  userId?: string
-}
-
-export function ChangePasswordDrawer({ userId }: ChangePasswordDrawerProps) {
+export function ChangePasswordDrawer() {
   const [open, setOpen] = React.useState(false)
   const [confirmOpen, setConfirmOpen] = React.useState(false)
   const [currentPassword, setCurrentPassword] = React.useState("")
@@ -74,8 +67,6 @@ export function ChangePasswordDrawer({ userId }: ChangePasswordDrawerProps) {
   }
 
   async function handleConfirm() {
-    if (!userId) return
-
     setIsSubmitting(true)
     setError(null)
 
@@ -83,7 +74,7 @@ export function ChangePasswordDrawer({ userId }: ChangePasswordDrawerProps) {
       const response = await fetch("/api/user/change-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, currentPassword, newPassword, confirmPassword }),
+        body: JSON.stringify({ currentPassword, newPassword, confirmPassword }),
       })
 
       const json = await response.json()
@@ -115,9 +106,7 @@ export function ChangePasswordDrawer({ userId }: ChangePasswordDrawerProps) {
           if (!nextOpen) resetForm()
         }}
       >
-        <DrawerTrigger
-          render={<Button variant="ghost" size="sm" disabled={!userId} />}
-        >
+        <DrawerTrigger render={<Button variant="ghost" size="sm" />}>
           <SquareAsterisk />
           Change Password
         </DrawerTrigger>
@@ -175,7 +164,7 @@ export function ChangePasswordDrawer({ userId }: ChangePasswordDrawerProps) {
               </FieldGroup>
             </div>
             <DrawerFooter>
-              <Button type="submit" form="change-password-form" disabled={!userId}>
+              <Button type="submit" form="change-password-form">
                 Change password
               </Button>
               <DrawerClose render={<Button variant="outline" />}>

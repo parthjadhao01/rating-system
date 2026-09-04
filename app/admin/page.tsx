@@ -1,10 +1,17 @@
+import { redirect } from 'next/navigation'
 
 import Tablesection from './tablesection'
 import Section from './section'
 import { SiteHeader } from './site-header'
 import { prisma } from '@/lib/prisma'
+import { getSession } from '@/lib/auth'
 
 export default async function Admin() {
+    const session = await getSession()
+    if (!session || session.role !== "ADMIN") {
+        redirect("/login")
+    }
+
     const [totalUser, totalStore, totalReview] = await Promise.all([
         prisma.user.count(),
         prisma.store.count(),

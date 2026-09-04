@@ -1,31 +1,30 @@
+import { redirect } from 'next/navigation'
+
 import { SiteHeader } from './site-header'
 import { prisma } from '@/lib/prisma'
+import { getSession } from '@/lib/auth'
 import { StoreOwnerDashboard } from './dashboard'
 
-// TODO: replace with the logged-in user's id from the session once
-// login/auth is implemented. Until then this looks up any existing store
-// owner (preferring one who already has a store assigned) so the dashboard
-// can be built and tested end to end.
 async function StoreOwner() {
-    const currentUser = await prisma.user.findFirst({
-        where: { role: "STORE_OWNER", storeId: { not: null } },
-        select: { id: true, name: true },
+    
+    const session = await getSession()
+    if (!session || session.role !== "STORE_OWNER") {
+        redirect("/login")
+    }
+
+    const currentUser = await prisma.user.findUniqueOrThrow({
+        where: { id: session.userId },
+        select: { name: true },
     })
 
     return (
         <div>
-            <SiteHeader userId={currentUser?.id} />
+            <SiteHeader />
             <div className="flex flex-col gap-4 p-4 md:gap-6 md:p-6">
                 <h1 className="text-2xl font-bold">
-                    Welcome{currentUser ? `, ${currentUser.name}` : ""}.
+                    Welcome, {currentUser.name}.
                 </h1>
-                {currentUser ? (
-                    <StoreOwnerDashboard userId={currentUser.id} />
-                ) : (
-                    <p className="text-muted-foreground">
-                        No store owner with an assigned store found.
-                    </p>
-                )}
+                <StoreOwnerDashboard />
             </div>
         </div>
     )
