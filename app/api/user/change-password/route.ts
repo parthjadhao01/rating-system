@@ -12,10 +12,14 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { currentPassword, newPassword } = changePasswordSchema.parse(body)
 
-    const user = await prisma.user.findUniqueOrThrow({
+    const user = await prisma.user.findUnique({
       where: { id: userId },
       select: { password: true },
     })
+
+    if (!user) {
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 })
+    }
 
     const isCurrentPasswordValid = await verifyPassword(currentPassword, user.password)
     if (!isCurrentPasswordValid) {

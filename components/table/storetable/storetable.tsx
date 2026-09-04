@@ -25,8 +25,6 @@ export default function StoreTable() {
   useEffect(() => {
     let cancelled = false
 
-    setIsLoading(true)
-
     fetch("/api/store")
       .then((res) => res.json())
       .then((json: StoresResponse) => {

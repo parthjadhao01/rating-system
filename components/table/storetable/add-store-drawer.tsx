@@ -74,24 +74,17 @@ export function AddStoreDrawer({ onAdd }: AddStoreDrawerProps) {
     }
   }
 
-  async function fetchEligibleStoreOwner() {
-    try {
-      const response = await fetch("/api/user/storeowner-unassigned");
-      const json = await response.json()
-      if (!response.ok) {
-        setError(json.error ?? "Something went wrong");
-        return
-      }
-      setEligibleStoreOwner(json.unassignedStoreOwner)
-    }catch(err){
-      setError("Something went wrong !!")
-    }
-  }
-
   React.useEffect(() => {
-    if(open==true){
-      fetchEligibleStoreOwner()
-    }
+    if (!open) return
+
+    fetch("/api/user/storeowner-unassigned")
+      .then(async (response) => {
+        const json = await response.json()
+        if (!response.ok) throw new Error(json.error ?? "Something went wrong")
+        return json
+      })
+      .then((json) => setEligibleStoreOwner(json.unassignedStoreOwner))
+      .catch(() => setError("Something went wrong !!"))
   }, [open])
 
   return (

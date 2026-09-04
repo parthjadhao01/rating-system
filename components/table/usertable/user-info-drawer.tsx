@@ -55,7 +55,7 @@ export function UserInfoDrawer({ user }: UserInfoDrawerProps) {
                 className="text-muted-foreground gap-1 px-1.5"
               >
                 <StarIcon className="size-3 fill-current" />
-                {user.rating ?? "No ratings yet"}
+                {user.rating !== undefined ? user.rating.toFixed(1) : "No ratings yet"}
               </Badge>
             </div>
           )}

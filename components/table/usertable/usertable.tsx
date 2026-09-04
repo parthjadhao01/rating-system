@@ -25,8 +25,6 @@ export default function UserTable() {
   useEffect(() => {
     let cancelled = false
 
-    setIsLoading(true)
-
     fetch("/api/user")
       .then((res) => res.json())
       .then((json: UsersResponse) => {

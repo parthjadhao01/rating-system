@@ -11,10 +11,15 @@ async function User() {
         redirect("/login")
     }
 
-    const currentUser = await prisma.user.findUniqueOrThrow({
+    const currentUser = await prisma.user.findUnique({
         where: { id: session.userId },
         select: { name: true },
     })
+
+    // Cookie is validly signed but the account it points at is gone.
+    if (!currentUser) {
+        redirect("/login")
+    }
 
     return (
         <div>

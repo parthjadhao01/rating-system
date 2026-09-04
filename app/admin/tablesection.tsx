@@ -1,24 +1,30 @@
+import { StoreIcon, UsersIcon } from "lucide-react"
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Store, User } from "lucide-react"
-import UserTable from "../../components/table/usertable/usertable"
-import StoreTable from "../../components/table/storetable/storetable"
-import { cn } from "@/lib/utils"
+import UserTable from "@/components/table/usertable/usertable"
+import StoreTable from "@/components/table/storetable/storetable"
+
+const DEFAULT_TAB = "user-table"
 
 function Tablesection() {
     return (
-        <Tabs defaultValue="account" className="w-full border">
-            <TabsList className={cn("m-2")}>
+        <Tabs defaultValue={DEFAULT_TAB} className="w-full">
+            <TabsList>
                 <TabsTrigger value="user-table">
-                    <User/>
-                    User
+                    <UsersIcon />
+                    Users
                 </TabsTrigger>
                 <TabsTrigger value="store-table">
-                    <Store/>
-                    Store
+                    <StoreIcon />
+                    Stores
                 </TabsTrigger>
             </TabsList>
-            <TabsContent className={cn("m-2")} value="user-table"><UserTable/></TabsContent>
-            <TabsContent className={cn("m-2")} value="store-table"><StoreTable/></TabsContent>
+            <TabsContent value="user-table">
+                <UserTable />
+            </TabsContent>
+            <TabsContent value="store-table">
+                <StoreTable />
+            </TabsContent>
         </Tabs>
     )
 }

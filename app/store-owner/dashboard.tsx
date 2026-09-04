@@ -25,9 +25,6 @@ export function StoreOwnerDashboard() {
   useEffect(() => {
     let cancelled = false
 
-    setIsLoading(true)
-    setError(null)
-
     fetch("/api/store-owner/dashboard")
       .then(async (res) => {
         const json = await res.json()

@@ -22,8 +22,6 @@ export default function StoreDirectory() {
   useEffect(() => {
     let cancelled = false
 
-    setIsLoading(true)
-
     fetch("/api/store")
       .then((res) => res.json())
       .then((json: StoresResponse) => {

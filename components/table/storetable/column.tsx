@@ -74,7 +74,7 @@ export const columns = columnHelper.columns([
         cell : (props) => (
             <Badge variant="outline" className="text-muted-foreground gap-1 px-1.5">
                 <StarIcon className="size-3 fill-current" />
-                {props.getValue()}
+                {props.getValue().toFixed(1)}
             </Badge>
         )
     })

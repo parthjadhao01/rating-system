@@ -1,36 +1,80 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Store Rating System
 
-## Getting Started
+A web application where users submit ratings from 1 to 5 for stores registered on
+the platform. One login serves all three roles — **System Administrator**,
+**Normal User** and **Store Owner** — and each is routed to different
+functionality after signing in.
 
-First, run the development server:
+## Tech stack
+
+| Layer    | Choice                                                            |
+| -------- | ----------------------------------------------------------------- |
+| Frontend | React 19 (Next.js 16 App Router), Tailwind CSS v4, shadcn/base-ui  |
+| Backend  | Next.js Route Handlers (Node runtime)                             |
+| Database | PostgreSQL via Prisma ORM                                         |
+| Auth     | Signed JWT in an httpOnly cookie (`jose`), bcrypt password hashing |
+| Tables   | TanStack Table v9 — sorting, filtering, pagination                 |
+
+The backend uses Next.js Route Handlers rather than a separate Express server:
+it is the same request/response model with a single deployment and one
+type-checked boundary between client and server.
+
+## Getting started
+
+**Prerequisites:** Node.js 20+ and a running PostgreSQL instance.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone <repo-url>
+cd rating-system
+npm install
+cp .env.example .env
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Fill in both values in `.env`:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- `DATABASE_URL` — your PostgreSQL connection string.
+- `AUTH_SECRET` — signs the session cookie. Generate one with:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+```
 
-## Learn More
+Then create the schema, load demo data, and start the app:
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm run db:deploy
+npm run db:seed
+npm run dev
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Open <http://localhost:3000>.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Demo accounts
 
-## Deploy on Vercel
+All seeded accounts use the password **`Password@123`**.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| Role        | Email                      |
+| ----------- | -------------------------- |
+| Admin       | `admin@ratings.test`       |
+| Store Owner | `vijay.owner@ratings.test` |
+| Normal User | `parth@ratings.test`       |
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The seed exists because the first admin cannot be created through the app:
+public signup always creates a `NORMAL_USER`, and `POST /api/user` requires an
+existing admin session. Every later account is created from the admin dashboard.
+
+Signing up at `/signup` creates a normal user, so the rating flow can also be
+tried with a fresh account.
+
+## Scripts
+
+| Command              | Description                                 |
+| -------------------- | ------------------------------------------- |
+| `npm run dev`        | Development server                          |
+| `npm run build`      | Production build                            |
+| `npm run start`      | Serve the production build                  |
+| `npm run lint`       | ESLint                                      |
+| `npm run db:migrate` | Create and apply a migration (development)  |
+| `npm run db:deploy`  | Apply existing migrations                   |
+| `npm run db:seed`    | Reset app data and load the demo dataset    |
+| `npm run db:reset`   | Drop, re-migrate and re-seed the database   |
